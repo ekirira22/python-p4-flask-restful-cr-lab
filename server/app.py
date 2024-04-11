@@ -3,6 +3,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
+from werkzeug.exceptions import NotFound
 
 from models import db, Plant
 
@@ -42,9 +43,19 @@ class PlantByID(Resource):
         response = make_response(plant, 200)
         return response
 
-        
+@app.errorhandler(NotFound)
+def handle_not_found(e):
+    message = {
+        "Not Found" : "The requested resource does not exist.",
+        "error" : f"{e}"
+    }
+    response = make_response(message, 404)
+    return response
+
+
 api.add_resource(Plants, '/plants')
 api.add_resource(PlantByID, '/plants/<int:id>')
+app.register_error_handler(404, handle_not_found)
 
 
 if __name__ == '__main__':
